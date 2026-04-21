@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATAVI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Fond Fractal Animé */
+        .fractal-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        .fractal-bg canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2rem 5%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-placeholder {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: border-color 0.3s ease;
+        }
+
+        .logo-placeholder:hover {
+            border-color: rgba(255,255,255,0.6);
+        }
+.logo-placeholder img {
+  max-width: 98%;
+  max-height: 98%;
+  border-radius: 12px;
+  object-fit: contain; /* garde les proportions sans déformation */
+  display: block;
+}
+        .site-name {
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #fff 0%, #888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #fff;
+        }
+
+        /* Section Principale */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem 6rem;
+        }
+
+        .article-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .article-title h1 {
+            font-size: 2.5rem;
+            font-weight: 200;
+            letter-spacing: 3px;
+            margin-bottom: 1rem;
+        }
+
+        .article-title p {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        /* Grille des Blocs */
+        .article-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .article-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Blocs Articles */
+        .article-block {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .article-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .article-block:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-4px);
+        }
+
+        .article-block:hover::before {
+            opacity: 1;
+        }
+
+        .article-block.expanded {
+            grid-column: 1 / -1;
+            background: rgba(255,255,255,0.06);
+        }
+
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .block-number {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 2px;
+        }
+
+        .expand-icon {
+            width: 24px;
+            height: 24px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .expand-icon svg {
+            width: 12px;
+            height: 12px;
+            stroke: rgba(255,255,255,0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .article-block.expanded .expand-icon svg {
+            transform: rotate(45deg);
+        }
+
+        .block-title {
+            font-size: 1.3rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .block-preview {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .block-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .article-block.expanded .block-content {
+            max-height: 1000px;
+        }
+
+        .block-content-inner {
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 1.5rem;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .block-content-inner p {
+            margin-bottom: 1rem;
+        }
+
+        .block-content-inner p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem;
+            color: rgba(255,255,255,0.3);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Fond Fractal -->
+    <div class="fractal-bg">
+        <canvas id="fractalCanvas"></canvas>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="logo-container">
+            <div class="logo-placeholder"><img src="atavi.png" alt="Logo"></div>
+            <h1 class="site-name">A T A V I</h1>
+        </div>
+        <nav>
+            <ul>
+                
+                <li><a href="https://www.instagram.com/atavi.mouvement?igsh=MXU3NWxoYjFlY3I2NQ==">Social</a></li>
+                <li><a>contact : atavi.media@gmail.com</a></li>
+                
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Contenu Principal -->
+    <main>
+        <div class="article-title">
+            <h1>Atavisme, vecteur de l'identité.</h1>
+            <p>Publié le 21 Avril 2026 — 10 min de lecture</p>
+        </div>
+
+        <div class="article-grid">
+            <!-- Bloc 1 -->
+            <div class="article-block" onclick="toggleBlock(this)">
+                <div class="block-header">
+                    <span class="block-number">01</span>
+                    <div class="expand-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="block-title">Introduction: ATAVISME</h3>
+                <p class="block-preview">L’atavisme désigne, au sens premier, la réapparition chez un individu de caractères ancestraux disparus depuis une ou plusieurs générations.</p>
+                <div class="block-content">
+                    <div class="block-content-inner">
+                        <p>Les dictionnaires de référence en donnent une définition convergente : Larousse parle d’une “réapparition” de caractères ancestraux, et le CNRTL précise qu’il s’agit d’un caractère des ascendants demeuré latent pendant plusieurs générations. Le Robert ajoute qu’on peut aussi parler, plus largement, d’hérédité de caractères physiques ou psychologiques</p>
+                        <p>Dans une lecture plus large, l’atavisme ne se limite pas à une simple curiosité biologique. Il peut être compris comme la résurgence d’une disposition ancienne : un talent, une sensibilité, un goût, une manière d’être, ou une faculté qui semblait enfouie, puis qui se réactive au contact du monde. Cette idée rejoint l’usage plus vaste du mot dans les dictionnaires, où l’on retrouve aussi la notion d’habitudes ancestrales et d’héritage transmis.</p>
+                        <p>Sur le plan scientifique, l’atavisme renvoie donc à la transmission de traits hérités. Certains travaux de biologie décrivent la réapparition d’un caractère ancestral lorsque des informations génétiques anciennes, restées silencieuses, s’expriment à nouveau. La littérature scientifique contemporaine distingue aussi l’hérédité génétique de certains phénomènes épigénétiques, c’est-à-dire des informations transmises sans modification de la séquence ADN elle-même ; toutefois, chez l’humain, ces mécanismes restent un domaine complexe et encore discuté.</p>
+                        <p>Mais l’atavisme peut aussi se lire comme une notion symbolique. Dans cette perspective, l’être humain n’est pas seulement le produit de son présent : il porte en lui des strates de mémoire, de lutte, de joie, de création et de culture. Cette vision rejoint l’idée, défendue par l’UNESCO, que le patrimoine culturel immatériel repose sur la transmission continue des savoirs, des gestes et des connaissances d’une génération à l’autre. L’éducation, la pratique artistique et la transmission communautaire y jouent un rôle central.</p>
+                        <p>Ainsi compris, l’atavisme devient plus qu’un mot scientifique : il devient une manière de nommer la connexion entre l’individu et la longue chaîne des vies qui l’ont précédé. Il évoque une mémoire profonde, parfois invisible, qui se réveille dans le rapport à la langue, au mouvement, à l’art, à la connaissance et à la culture. Ce réveil n’est pas seulement biologique ; il peut aussi être identitaire. Il réunit le corps, l’histoire et l’héritage, dans une même conscience de soi. L’identité n’apparaît alors plus comme une invention isolée, mais comme une continuité vivante.</p>
+                        <p>Dans le cadre d’Atavi, cette notion prend tout son sens : nous sommes aussi nos ancêtres, non pas comme une formule figée, mais comme une force active. Une force qui traverse le temps, qui survit aux ruptures, et qui cherche à refaire surface dans la culture, dans la pensée et dans la création.</p>
+                        </div>
+                </div>
+            </div>
+
+            <!-- Bloc 2 -->
+            <div class="article-block" onclick="toggleBlock(this)">
+                <div class="block-header">
+                    <span class="block-number">02</span>
+                    <div class="expand-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="block-title">Problématique</h3>
+                <p class="block-preview">Pour les peuples afro-descendants, la question de l’atavisme ne peut être abordée sans reconnaître une réalité fondamentale : le lien ancestral a été profondément altéré.
+</p>
+                <div class="block-content">
+                    <div class="block-content-inner">
+                    <p>Pendant des siècles, des pans entiers d’histoire ont été brisés, déplacés, effacés ou réécrits. La traite négrière transatlantique, le colonialisme, puis les systèmes de ségrégation ont fragmenté les corps, les territoires et les mémoires. Des millions d’individus ont été arrachés à leurs terres, à leurs langues, à leurs structures sociales, à leurs spiritualités. Cette violence n’a pas seulement été physique ou économique : elle a été épistémique, touchant directement à la transmission du savoir et de l’identité.</p>
+                    <p>Cette fragmentation a produit une conséquence durable : un brouillard identitaire. Là où d’autres peuples peuvent retracer leurs lignées, leurs récits et leurs héritages avec continuité, de nombreux afro-descendants se retrouvent face à des trous dans leur propre histoire. Les archives sont incomplètes, les récits ont été filtrés par des regards extérieurs, et les sources accessibles sont souvent issues de systèmes qui ont eux-mêmes participé à cette déformation.</p>
+                    <p>À cette rupture s’ajoute un second phénomène : la réécriture de l’histoire noire. Longtemps racontée depuis un point de vue dominant, elle a été simplifiée, déformée ou marginalisée. Les contributions culturelles, scientifiques et philosophiques des peuples noirs ont été minimisées ou invisibilisées, rendant plus difficile encore l’accès à une compréhension complète de ses origines. Se documenter devient alors un parcours fragmenté, parfois contradictoire, qui laisse place à l’incertitude</p>
+                    <p>Ce manque de continuité historique n’est pas sans conséquence. Il engendre un vide identitaire, souvent inconscient, qui peut se traduire par un mal-être diffus, une difficulté à se situer, à comprendre ce qui nous constitue profondément. L’individu se construit alors dans un espace où les repères ont été affaiblis, voire effacés.</p>
+                    <p>Aujourd’hui, une nouvelle dimension de cette rupture apparaît. Après le territoire et l’histoire, c’est le troisième pilier d’un peuple qui se trouve fragilisé : sa culture et sa mémoire vivante.</p>
+                    <p>Les formes d’expression ancestrales,  qu’il s’agisse de rites, de pratiques ou de créations comme la musique, sont de plus en plus intégrées dans des logiques industrielles globales. Elles sont diffusées, transformées, standardisées. Ce processus n’est pas neutre : il tend à détacher ces expressions de leur fonction première, qui était souvent liée à la transmission, au lien, à la spiritualité ou à la cohésion sociale.</p>
+                    <p>La musique, en particulier, en est un exemple marquant. Historiquement, elle a été un vecteur de mémoire, un outil de résistance, un espace de transmission intergénérationnelle. Aujourd’hui, elle est largement exploitée dans une logique de divertissement, où la forme prend le pas sur le sens. Sa dimension sacrée ou fonctionnelle s’efface au profit de sa valeur marchande.</p>
+                    <p>Ce phénomène va plus loin : il influence aussi les créateurs eux-mêmes. Les artistes, parfois sans en avoir pleinement conscience, peuvent être amenés à adapter leur expression aux normes dominantes, au détriment de leur profondeur originelle. Ce n’est plus simplement une évolution naturelle de la culture, mais un glissement vers une standardisation.</p>
+                    <p>Dans ce contexte, il ne s’agit plus uniquement de transformation culturelle, mais bien d’un risque d’effacement progressif. Un effacement subtil, qui ne détruit pas frontalement, mais qui détourne, simplifie et dilue.</p>
+                    <p>Ainsi, la crise identitaire afro-descendante contemporaine ne repose pas uniquement sur le passé. Elle se joue aussi dans le présent, dans les contenus consommés, dans les formes produites, dans les récits qui circulent. Sans s’en rendre compte, il devient possible de participer à la reproduction de formes culturelles détachées de leur essence, contribuant malgré soi à cet éloignement</p>
+                    
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloc 3 -->
+            <div class="article-block" onclick="toggleBlock(this)">
+                <div class="block-header">
+                    <span class="block-number">03</span>
+                    <div class="expand-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="block-title">Perspectives : reconstruire, transmettre, éveiller.</h3>
+                <p class="block-preview">L’enjeu est clair : constituer une mémoire directe, incarnée et non altérée, capable de traverser le temps...</p>
+                <div class="block-content">
+                    <div class="block-content-inner">
+                        
+                    <p>Là où l’histoire a été fragmentée, ATAVI propose une reconstruction par le réel, par l’humain, par la parole. Une mémoire qui ne dépend plus uniquement d’institutions, mais qui appartient à ceux qui la vivent.</p>
+                    <p>Face à cette rupture, une nécessité émerge : reconstruire un lien. Non pas en idéalisant le passé, mais en recréant des ponts entre mémoire, identité et présent. C’est dans cette perspective que s’inscrit ATAVI.</p>
+                    <p>ATAVI se donne pour première mission un travail fondamental : préserver la mémoire.</p>
+                    <p>Ce travail repose sur la création d’une archive vivante, construite à partir des voix elles-mêmes. L’objectif est de recueillir des témoignages d’individus sur leur identité, telle qu’ils la vivent et la définissent. Ces récits sont explorés sous différents prismes, sociaux, spirituels, culturels et physiques, afin de restituer toute la complexité des parcours et des vécus.</p>
+                    <p>Mais la mission d’ATAVI ne s’arrête pas à l’archivage.</p>
+                    <p>Le média porte également une dimension essentielle, celle d’une transmission philosophique et spirituelle. Dans un monde saturé d’influences sociales, culturelles et médiatiques, il devient crucial d’apprendre à reconnaître les mécanismes qui façonnent notre identité.</p>
+                    <p>ATAVI propose ainsi des outils de réflexion pour permettre à chacun de comprendre ce qui influence son esprit, d’identifier les biais et conditionnements, et de se reconnecter à une identité plus consciente.</p>
+                    <p>Cette démarche ne vise pas à figer l’individu dans un passé, mais à lui permettre de distinguer ce qui est hérité de ce qui est imposé. Se reconnecter à son lien atavique devient alors un acte actif, un travail de lucidité, de réappropriation et de reconstruction intérieure. Dans ce processus, l’individu retrouve une forme de maîtrise. Il peut se définir avec plus de clarté, créer avec plus de sens et exister avec plus d’ancrage.</p>
+                    <p>ATAVI se positionne ainsi comme un espace de réappropriation globale, de la mémoire, du récit et de l’identité.</p>
+                    <p>À travers l’archive et la transmission, le média accompagne un mouvement plus profond, celui d’une génération qui cherche à se reconnecter à ce qu’elle est, au-delà des déformations et des pertes.</p>
+                    <p>Car il ne s’agit pas seulement de préserver le passé. Il s’agit de réactiver une continuité.</p>
+                    
+            
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloc 4 -->
+            <div class="article-block" onclick="toggleBlock(this)">
+                <div class="block-header">
+                    <span class="block-number">04</span>
+                    <div class="expand-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="block-title">Philosophie & Doctrines</h3>
+                <p class="block-preview">Principes et mises en pratique.</p>
+                <div class="block-content">
+                    <div class="block-content-inner">
+                        <h3 class="block-title">Principe d’Incarnation</h3>
+                    <p>Le corps constitue un point d’ancrage fondamental entre les dimensions matérielles et immatérielles de l’existence.</p>
+                    <p>Il ne se réduit pas à une fonction utilitaire ; il est à la fois réceptacle, vecteur et expression. Le mouvement, lorsqu’il est conscient, permet de réactiver des circulations internes, d’ajuster des déséquilibres, et de renouer avec une présence plus pleine.</p>
+                    <p>Dans cette perspective, l’incarnation ne désigne pas seulement le fait d’exister dans un corps, mais la capacité à y être véritablement présent, en cohérence avec les dynamiques qui le traversent.</p>
+                    
+                    <p>mise en pratique : L’incarnation exige un retour régulier au corps comme espace de perception directe. Cela passe par des pratiques où le mouvement n’est pas mécanique mais conscient : marche lente, travail de mobilité, respiration maîtrisée, danse ou discipline physique vécue comme une écoute plutôt qu’une performance. Il s’agit de restaurer un lien fin entre sensation et présence, jusqu’à percevoir les déséquilibres et les ajuster.</p>
+                    
+                    <h3 class="block-title">Principe d’Essence</h3>
+                    <p>L’identité ne se décrète pas, elle se révèle.</p>
+                    <p>Elle se situe au-delà des constructions superficielles, des conditionnements et des projections extérieures. La connaissance de soi implique un travail de déconstruction autant que de compréhension.</p>
+                    <p>Il s’agit de distinguer ce qui relève de la nature propre de l’individu de ce qui lui a été inculqué, imposé ou intégré sans conscience. </p>
+                    <p>Ce processus ne vise pas un retour figé vers une origine, mais une clarification progressive. Il permet à l’être de se définir avec plus de justesse, et de développer une cohérence entre ce qu’il est, ce qu’il perçoit et ce qu’il exprime.</p>
+                    <p>Mise en pratique : La connaissance de soi repose sur une observation rigoureuse. Il devient nécessaire d’interroger ses réactions, ses désirs, ses peurs, et leurs origines. L’écriture, la solitude choisie, la réduction des influences extérieures et l’analyse des schémas récurrents permettent de faire émerger ce qui relève du conditionnement et ce qui appartient à la nature propre. Ce travail demande constance et honnêteté. </p>
+                    
+                    <h3 class="block-title">Principe de Flamme</h3>
+                    
+                    <p>L’art et la culture relèvent d’une fonction essentielle : celle de transmettre, de structurer et de donner sens.</p>
+                    <p>Ils ne peuvent être réduits à de simples objets de consommation. Là où l’art opère comme un vecteur de mémoire, d’élévation et de transformation, le divertissement, lorsqu’il est détaché de toute intention profonde, tend à capter l’attention sans nécessairement nourrir.</p>
+                    <p>La disparition progressive de cette distinction entraîne un appauvrissement du rapport au sens. Sans ancrage culturel et philosophique, l’être devient plus perméable aux influences extérieures, et perd en capacité de discernement.</p>
+                    <p>Entretenir la flamme artistique revient alors à préserver une forme de continuité, une transmission vivante.</p>
+                    <p>Mise en pratique :La flamme se cultive par une exposition exigeante et une pratique active. Il s’agit de sélectionner les œuvres, les pensées et les formes qui portent une profondeur, et de limiter celles qui n’engagent qu’une stimulation immédiate. La création personnelle, quelle qu’en soit la forme, devient essentielle : écrire, composer, produire, transmettre. L’objectif n’est pas la reconnaissance, mais l’inscription dans une continuité culturelle consciente. </p>
+                    
+                    <h3 class="block-title">Principe d’Interaction (Résonances et Causalité)</h3>
+                    
+                    <p>Rien n’est isolé. Rien n’est immobile</p>
+                    <p>Toute chose est prise dans un réseau d’interactions où s’entrelacent mouvement et conséquence. Ce qui vibre agit. Ce qui agit produit des effets.</p>
+                    <p>La matière, les pensées, les environnements, les relations : tout participe à une dynamique où chaque élément influence l’autre. Dans cette continuité, la matière elle-même peut être envisagée comme porteuse d’empreintes, de traces, de mémoires.</p>
+                    <p>Comprendre ce principe, c’est reconnaître que toute présence modifie et est modifiée. L’existence devient alors un champ d’interdépendance où chaque action s’inscrit dans une continuité résonante et causale</p>
+                    <p>Mise en pratique : L’application de ce principe repose sur une attention portée aux environnements et aux interactions. Observer les effets d’un lieu, d’une relation, d’un contenu sur l’état intérieur permet de comprendre les dynamiques en jeu. Il s’agit ensuite d’ajuster : s’éloigner de ce qui altère, se rapprocher de ce qui élève. Cette lucidité implique également une responsabilité dans ses propres actions, chaque geste étant porteur de conséquences au-delà de l’instant. </p>
+                    
+                    <h3 class="block-title">Principe d’Assimilation</h3>
+                    
+                    <p>Ce qui est absorbé façonne ce qui est.</p>
+                    <p>Le corps se construit par les éléments qu’il intègre. L’esprit se structure par les contenus auxquels il est exposé. Images, récits, sons, environnements et relations constituent autant de formes de nourriture.</p>
+                    <p>Toutes ne se valent pas. Certaines nourrissent et élèvent, d’autres transforment, d’autres encore altèrent ou appauvrissent. La capacité à discerner ces différentes qualités devient essentielle dans un contexte de surabondance.</p>
+                    <p>Ce qui est laissé entrer en soi participe inévitablement à la formation de l’être.</p>
+                    <p>L’assimilation, pour celui qui en est conscient, possède toujours une finalité. Elle n’est jamais neutre dès lors qu’elle est observée et maîtrisée. Une assimilation, notamment culturelle, lorsqu’elle est traversée par la compréhension des mécanismes de causalité  tels qu’évoqués dans le principe précédent, ne peut être dénuée d’intention. Même lorsqu’elle semble passive, elle devient, dès qu’elle est reconnue, un acte orienté : sélectionner, intégrer, transformer. L’exposition n’est plus subie, elle est modulée. Ainsi, ce qui entre en soi cesse d’être simple flux pour devenir matière d’élaboration consciente. </p>
+                    <p>Mise en pratique : L’assimilation se maîtrise par une sélection consciente. Cela implique de réguler ce qui est consommé, tant sur le plan physique que mental. Observer les effets après exposition : clarté, confusion, énergie, apathie. L’observation permet d’évaluer la qualité de ce qui est intégré. Il ne s’agit pas de se priver, mais de hiérarchiser. À terme, une discipline s’installe, orientée vers ce qui nourrit réellement et écarte ce qui désorganise. </p>
+                   
+                    
+                    
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© ATAVI — Tous droits réservés</p>
+    </footer>
+
+    <script>
+        // Toggle Bloc Article
+        function toggleBlock(block) {
+            const wasExpanded = block.classList.contains('expanded');
+            
+            // Fermer tous les blocs
+            document.querySelectorAll('.article-block').forEach(b => {
+                b.classList.remove('expanded');
+            });
+            
+            // Ouvrir le bloc cliqué si il n'était pas déjà ouvert
+            if (!wasExpanded) {
+                block.classList.add('expanded');
+            }
+        }
+
+        // Animation Fractal Géométrique
+        const canvas = document.getElementById('fractalCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        let time = 0;
+
+        function drawFractal() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Dessiner plusieurs couches de formes fractales
+            for (let layer = 0; layer < 3; layer++) {
+                const layerOffset = layer * 0.5;
+                
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2 + time * (0.2 + layer * 0.1);
+                    const radius = 150 + layer * 100 + Math.sin(time + i) * 50;
+                    
+                    drawSierpinskiTriangle(
+                        centerX + Math.cos(angle) * radius,
+                        centerY + Math.sin(angle) * radius,
+                        80 - layer * 15,
+                        3,
+                        angle + time * 0.3
+                    );
+                }
+            }
+
+            // Lignes de connexion
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 0.5;
+            
+            for (let i = 0; i < 8; i++) {
+                const angle1 = (i / 8) * Math.PI * 2 + time * 0.1;
+                const angle2 = ((i + 3) / 8) * Math.PI * 2 + time * 0.15;
+                const r1 = 200 + Math.sin(time + i) * 100;
+                const r2 = 300 + Math.cos(time + i) * 100;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX + Math.cos(angle1) * r1, centerY + Math.sin(angle1) * r1);
+                ctx.lineTo(centerX + Math.cos(angle2) * r2, centerY + Math.sin(angle2) * r2);
+                ctx.stroke();
+            }
+
+            // Cercles pulsants
+            for (let i = 0; i < 5; i++) {
+                const pulseRadius = 100 + i * 80 + Math.sin(time * 0.5 + i) * 30;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${0.02 - i * 0.003})`;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, pulseRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            time += 0.008;
+            requestAnimationFrame(drawFractal);
+        }
+
+        function drawSierpinskiTriangle(x, y, size, depth, rotation) {
+            if (depth === 0 || size < 5) {
+                ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + Math.sin(time) * 0.05})`;
+                ctx.lineWidth = 0.5;
+                
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(rotation);
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -size / 2);
+                ctx.lineTo(-size / 2, size / 2);
+                ctx.lineTo(size / 2, size / 2);
+                ctx.closePath();
+                ctx.stroke();
+                
+                ctx.restore();
+                return;
+            }
+
+            const newSize = size / 2;
+            const h = (Math.sqrt(3) / 4) * size;
+
+            // Triangle haut
+            drawSierpinskiTriangle(x, y - h / 2, newSize, depth - 1, rotation);
+            // Triangle bas gauche
+            drawSierpinskiTriangle(x - newSize / 2, y + h / 2, newSize, depth - 1, rotation);
+            // Triangle bas droit
+            drawSierpinskiTriangle(x + newSize / 2, y + h / 2, newSize, depth - 1, rotation);
+        }
+
+        drawFractal();
+    </script>
+</body>
+</html>
